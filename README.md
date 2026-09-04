@@ -1,104 +1,77 @@
 # SupportAI
 
-**Smarter IT Support. Faster Resolution.**
+SupportAI is an AI-assisted IT support ticket system for small and medium-sized teams.
 
-AI-assisted IT support ticket management for SMEs. Employees submit issues,
-AI recommends a category/priority/summary, and support staff review and
-resolve tickets.
+## Problem and solution
 
-## Stack
+IT requests are often unstructured and slow to triage. Employees submit a ticket once, SupportAI recommends a category, priority, and summary, and support staff review the recommendation and track resolution.
 
-- Frontend: React + Vite + Tailwind CSS + React Router + Axios
-- Backend: FastAPI + SQLAlchemy + Pydantic + Uvicorn
-- Database: SQLite
-- AI: OpenAI or Gemini (called only from the backend, never exposed to the frontend)
+## Main features
 
-## Project structure
+- Ticket submission and validation
+- AI category, priority, and summary recommendations
+- Ticket details and human approval view
+- Status management: Open, In Progress, Resolved
+- Dashboard statistics
 
-```
-project-root/
-├── backend/
-│   ├── app/
-│   │   ├── routes/       # tickets.py, dashboard.py
-│   │   ├── services/     # ai_service.py
-│   │   ├── models.py     # SQLAlchemy Ticket model
-│   │   ├── schemas.py    # Pydantic request/response schemas
-│   │   └── database.py   # engine/session setup
-│   ├── tests/
-│   ├── seed.py           # sample ticket data
-│   └── main.py           # FastAPI app + CORS
-└── frontend/
-    └── src/
-        ├── features/
-        │   ├── tickets/      # submission + detail pages
-        │   ├── ai/           # AI-related UI
-        │   ├── dashboard/    # dashboard page
-        │   └── management/   # ticket update/status UI
-        ├── components/       # Navbar, Loading, ErrorMessage, Button, Card
-        ├── services/         # api.js (Axios client)
-        ├── App.jsx
-        └── main.jsx
-```
+## Technology and architecture
 
-## Getting started
+The frontend uses React, Vite, Tailwind CSS, React Router, and Axios. The backend uses FastAPI, SQLAlchemy, Pydantic, and Uvicorn. SQLite stores a flat `tickets` table. The frontend calls the REST API; AI keys remain on the backend and are never sent to the browser.
 
-### Backend
+## API endpoints
 
-```bash
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| POST | `/api/tickets` | Create a ticket |
+| GET | `/api/tickets` | List tickets |
+| GET | `/api/tickets/{id}` | View ticket details |
+| PUT | `/api/tickets/{id}` | Update category, priority, status, or approval |
+| POST | `/api/tickets/{id}/analyze` | Generate AI recommendations |
+| GET | `/api/dashboard/stats` | View dashboard statistics |
+| GET | `/api/health` | Health check |
+
+## Installation and running
+
+Backend (Windows PowerShell):
+
+```powershell
 cd backend
 python -m venv venv
-source venv/Scripts/activate   # Windows Git Bash; use venv\Scripts\activate on cmd
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-cp .env.example .env
-python seed.py                 # optional: adds sample tickets
+Copy-Item .env.example .env
 uvicorn main:app --reload --port 8000
 ```
 
-Backend runs at `http://localhost:8000`. Health check: `GET /api/health`.
+Frontend:
 
-To enable real AI analysis, set `OPENAI_API_KEY` or `GEMINI_API_KEY` in
-`backend/.env`. Without a key, `/api/tickets/{id}/analyze` falls back to a
-keyword-based mock so the app still works end-to-end.
-
-### Frontend
-
-```bash
+```powershell
 cd frontend
 npm install
-cp .env.example .env
+Copy-Item .env.example .env
 npm run dev
 ```
 
-Frontend runs at `http://localhost:5173`.
+Use `python seed.py` from `backend` to load sample data. Run `npm run build` for the production frontend build.
 
-### Tests
+## Testing
 
-```bash
-# backend
-cd backend && source venv/Scripts/activate && pytest
-
-# frontend
-cd frontend && npm run test
+```powershell
+cd backend; python -m pytest
+cd frontend; npm run test
 ```
 
-## API
+## Environment variables and deployment
 
-| Method | Endpoint                     | Description                     |
-|--------|-------------------------------|----------------------------------|
-| POST   | `/api/tickets`                | Create a ticket                  |
-| GET    | `/api/tickets`                | List all tickets                 |
-| GET    | `/api/tickets/{id}`           | Get one ticket                   |
-| POST   | `/api/tickets/{id}/analyze`   | Run AI analysis on a ticket      |
-| PUT    | `/api/tickets/{id}`           | Update category/priority/status/approval |
-| GET    | `/api/dashboard/stats`        | Ticket statistics                |
+Backend `.env` supports `DATABASE_URL`, `FRONTEND_ORIGIN`, `OPENAI_API_KEY`, and `GEMINI_API_KEY`. Keep `.env` files out of version control. CORS uses `FRONTEND_ORIGIN`.
 
-## Team ownership
+Deploy the frontend to Vercel with `VITE_API_BASE_URL` set to the deployed Render backend URL. Deploy the backend to Render with build command `pip install -r requirements.txt` and start command `uvicorn main:app --host 0.0.0.0 --port $PORT`, plus the backend environment variables.
 
-| Member | Owns |
-|--------|------|
-| 1 | `features/tickets`, ticket creation backend, validation |
-| 2 | `features/ai`, AI service, AI API integration |
-| 3 | `features/dashboard`, dashboard API, seed data |
-| 4 | `features/management`, ticket update/status API, README/deployment |
+## Team contributions
 
-Only Member 1 should modify `App.jsx` and routing initially.
+| Member | Contribution |
+| --- | --- |
+| 1 | Ticket creation and validation |
+| 2 | AI service and integration |
+| 3 | Dashboard and seed data |
+| 4 | Ticket details, status management, testing, documentation, and deployment support |
