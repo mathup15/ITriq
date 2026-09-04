@@ -1,18 +1,60 @@
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import Card from '../../components/Card'
+import ErrorMessage from '../../components/ErrorMessage'
+import Loading from '../../components/Loading'
+import api from '../../services/api'
+import TicketDetails from '../management/TicketDetails'
 
 export default function TicketDetailPage() {
   const { id } = useParams()
+  const [ticket, setTicket] = useState(null)
+  const [status, setStatus] = useState('Open')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!/^\d+$/.test(id || '') || Number(id) < 1) {
+      setError('That ticket ID is not valid.')
+      setLoading(false)
+      return
+    }
+
+    api.get(`/api/tickets/${id}`)
+      .then(({ data }) => {
+        if (!data || !data.id) throw new Error('Empty ticket response')
+        setTicket(data)
+        setStatus(data.status)
+      })
+      .catch((requestError) => setError(requestError.response?.status === 404
+        ? 'Ticket not found.'
+        : 'Unable to load this ticket. Please try again.'))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  async function saveStatus() {
+    setSaving(true)
+    setError('')
+    try {
+      const { data } = await api.put(`/api/tickets/${id}`, { status })
+      if (!data || !data.id) throw new Error('Empty update response')
+      setTicket(data)
+    } catch (requestError) {
+      setError(requestError.response?.status === 404
+        ? 'Ticket not found.'
+        : 'Unable to update this ticket. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold text-navy mb-6">Ticket #{id}</h1>
-      <Card>
-        <p className="text-sm text-text-secondary">
-          Ticket details, AI recommendation review, and status update controls
-          go here (features/tickets, features/ai, features/management).
-        </p>
-      </Card>
+    <div className="mx-auto max-w-5xl p-6">
+      {loading && <Loading label="Loading ticket..." />}
+      {!loading && error && <ErrorMessage message={error} />}
+      {!loading && !error && ticket && (
+        <TicketDetails ticket={ticket} status={status} onStatusChange={setStatus} onSave={saveStatus} saving={saving} />
+      )}
     </div>
   )
 }
