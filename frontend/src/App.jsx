@@ -1,8 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Navbar from './components/Navbar'
-import SubmitTicketPage from './features/tickets/SubmitTicketPage'
+import SubmitTicket from './features/tickets/SubmitTicket'
 import TicketDetailPage from './features/tickets/TicketDetailPage'
-import DashboardPage from './features/dashboard/DashboardPage'
+import Dashboard from './features/dashboard/Dashboard'
 
 export default function App() {
   return (
@@ -10,8 +10,8 @@ export default function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/submit" element={<SubmitTicketPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/submit" element={<SubmitTicket />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tickets/:id" element={<TicketDetailPage />} />
       </Routes>
     </div>

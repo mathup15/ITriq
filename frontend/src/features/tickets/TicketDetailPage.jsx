@@ -8,6 +8,7 @@ import Button from '../../components/Button'
 import AIRecommendation from '../ai/AIRecommendation'
 import ApprovalPanel from '../ai/ApprovalPanel'
 import { analyzeTicket, saveDecision } from '../ai/aiApi'
+import StatusSelector from '../management/StatusSelector'
 
 export default function TicketDetailPage() {
   const { id } = useParams()
@@ -16,6 +17,7 @@ export default function TicketDetailPage() {
   const [loadError, setLoadError] = useState('')
   const [analyzing, setAnalyzing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [statusSaving, setStatusSaving] = useState(false)
   const [aiError, setAiError] = useState('')
 
   useEffect(() => {
@@ -70,6 +72,19 @@ export default function TicketDetailPage() {
     }
   }
 
+  const handleStatusChange = async (status) => {
+    setStatusSaving(true)
+    setAiError('')
+    try {
+      const { data } = await api.put(`/api/tickets/${id}`, { status })
+      setTicket(data)
+    } catch {
+      setAiError('Could not update the ticket status. Please try again.')
+    } finally {
+      setStatusSaving(false)
+    }
+  }
+
   if (loading) return <Loading label="Loading ticket..." />
   if (loadError) return <ErrorMessage message={loadError} />
 
@@ -105,9 +120,9 @@ export default function TicketDetailPage() {
         </Card>
       )}
 
-      <p className="text-sm text-text-secondary">
-        Status updates and resolution actions go here (features/management).
-      </p>
+      <Card className="mt-6">
+        <StatusSelector value={ticket.status} onChange={handleStatusChange} disabled={statusSaving} />
+      </Card>
     </div>
   )
 }
