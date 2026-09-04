@@ -86,11 +86,50 @@ cd frontend && npm run test
 | Method | Endpoint                     | Description                     |
 |--------|-------------------------------|----------------------------------|
 | POST   | `/api/tickets`                | Create a ticket                  |
-| GET    | `/api/tickets`                | List all tickets                 |
+| GET    | `/api/tickets`                | List tickets (supports `?search=wifi&category=Network&priority=High&status=Open`) |
 | GET    | `/api/tickets/{id}`           | Get one ticket                   |
 | POST   | `/api/tickets/{id}/analyze`   | Run AI analysis on a ticket      |
 | PUT    | `/api/tickets/{id}`           | Update category/priority/status/approval |
-| GET    | `/api/dashboard/stats`        | Ticket statistics                |
+| GET    | `/api/dashboard/stats`        | Ticket statistics (total, open, in_progress, resolved, high_priority) |
+
+### Dashboard Statistics (`GET /api/dashboard/stats`)
+
+Returns aggregated counts calculated from the database:
+
+```json
+{
+  "total": 25,
+  "open": 12,
+  "in_progress": 5,
+  "resolved": 8,
+  "high_priority": 5
+}
+```
+
+### Ticket Search & Filtering (`GET /api/tickets`)
+
+Supports query parameters:
+- `search`: Search across title, description, user name, and email (e.g. `?search=wifi`)
+- `category`: Filter by `Hardware`, `Software`, `Network`, `Account Access`, `Security`, `Other`
+- `priority`: Filter by `Low`, `Medium`, `High`, `Critical`
+- `status`: Filter by `Open`, `In Progress`, `Resolved`
+
+### Sample Seed Data (`backend/seed.py`)
+
+Run `python seed.py` to populate the database with 8 realistic IT support tickets spanning diverse categories, priorities, and statuses. The seed operation is idempotent and checks for existing entries to avoid duplicate records.
+
+```bash
+cd backend
+python seed.py
+```
+
+### Member 3 Dashboard Components (`frontend/src/features/dashboard`)
+
+- `Dashboard.jsx`: Main SaaS command center view with header, state management, and debounced filters.
+- `StatCards.jsx`: 5 key performance metric cards (Total, Open, In Progress, Resolved, High Priority).
+- `TicketFilters.jsx`: Real-time search bar and dropdown filter controls.
+- `TicketList.jsx`: Responsive support ticket listing with status/priority badges and navigation to `/tickets/:id`.
+- `dashboardApi.js`: API client functions for dashboard stats and filtered ticket querying.
 
 ## Team ownership
 
