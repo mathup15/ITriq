@@ -1,62 +1,17 @@
 """AI triage tests (owned by Member 2 - features/ai).
 
+Shared test database setup lives in conftest.py.
+
 The real AI API is never called here. Unit tests monkeypatch the internal
 OpenAI caller to exercise ai_service's validation/fallback logic directly;
 endpoint tests monkeypatch app.routes.tickets.analyze_ticket so the
 /analyze route never reaches out to a real provider either.
 """
-import os
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 import app.routes.tickets as tickets_route
-from app.database import Base, get_db
 from app.services import ai_service
 from main import app
-
-TEST_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@pytest.fixture(autouse=True)
-def setup_db():
-    # Re-applied per test (not just at import time) so this module's engine
-    # stays the active one even when test_tickets.py's own module-level
-    # override was the last one applied during collection. Restored after
-    # each test so test_tickets.py's tests aren't left pointing at this
-    # module's (by-then-dropped) tables.
-    previous_override = app.dependency_overrides.get(get_db)
-    app.dependency_overrides[get_db] = override_get_db
-    Base.metadata.create_all(bind=engine)
-    try:
-        yield
-    finally:
-        Base.metadata.drop_all(bind=engine)
-        if previous_override is not None:
-            app.dependency_overrides[get_db] = previous_override
-        else:
-            app.dependency_overrides.pop(get_db, None)
-
 
 client = TestClient(app)
 
@@ -65,6 +20,7 @@ VALID_TICKET = {
     "email": "john@example.com",
     "title": "WiFi not working",
     "description": "Cannot connect to office WiFi today.",
+    "category": "Network",
 }
 
 
