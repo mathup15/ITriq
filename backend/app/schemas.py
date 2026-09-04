@@ -68,10 +68,15 @@ class TicketResponse(BaseModel):
 
 
 class DashboardStats(BaseModel):
-    total_tickets: int
-    open_tickets: int
-    in_progress_tickets: int
-    resolved_tickets: int
-    by_category: dict[str, int]
-    by_priority: dict[str, int]
-    pending_ai_approval: int
+    total: int
+    open: int
+    in_progress: int
+    resolved: int
+    high_priority: int
+    total_tickets: Optional[int] = None
+    open_tickets: Optional[int] = None
+    in_progress_tickets: Optional[int] = None
+    resolved_tickets: Optional[int] = None
+    by_category: Optional[dict[str, int]] = None
+    by_priority: Optional[dict[str, int]] = None
+    pending_ai_approval: Optional[int] = None

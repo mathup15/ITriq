@@ -4,7 +4,9 @@ POST   /api/tickets            create a ticket
 GET    /api/tickets            list all tickets
 POST   /api/tickets/{id}/analyze   run AI analysis on a ticket
 """
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -42,8 +44,36 @@ def create_ticket(payload: TicketCreate, db: Session = Depends(get_db)):
 
 
 @router.get("", response_model=list[TicketResponse])
-def list_tickets(db: Session = Depends(get_db)):
-    return db.query(Ticket).order_by(Ticket.created_at.desc()).all()
+def list_tickets(
+    search: Optional[str] = Query(None, description="Search by title, description, name, or email"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    priority: Optional[str] = Query(None, description="Filter by priority"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Ticket)
+
+    if search and search.strip():
+        term = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                Ticket.title.ilike(term),
+                Ticket.description.ilike(term),
+                Ticket.name.ilike(term),
+                Ticket.email.ilike(term),
+            )
+        )
+
+    if category and category.strip() and category.strip().lower() != "all":
+        query = query.filter(Ticket.category == category.strip())
+
+    if priority and priority.strip() and priority.strip().lower() != "all":
+        query = query.filter(Ticket.priority == priority.strip())
+
+    if status and status.strip() and status.strip().lower() != "all":
+        query = query.filter(Ticket.status == status.strip())
+
+    return query.order_by(Ticket.created_at.desc()).all()
 
 
 @router.post("/{ticket_id}/analyze", response_model=TicketResponse)
