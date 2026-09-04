@@ -1,84 +1,113 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import ErrorMessage from '../../components/ErrorMessage'
-import Loading from '../../components/Loading'
 import api from '../../services/api'
-import TicketDetails from '../management/TicketDetails'
+import Card from '../../components/Card'
+import Loading from '../../components/Loading'
+import ErrorMessage from '../../components/ErrorMessage'
+import Button from '../../components/Button'
+import AIRecommendation from '../ai/AIRecommendation'
+import ApprovalPanel from '../ai/ApprovalPanel'
+import { analyzeTicket, saveDecision } from '../ai/aiApi'
 
 export default function TicketDetailPage() {
   const { id } = useParams()
-  const invalidId = !/^\d+$/.test(id || '') || Number(id) < 1
   const [ticket, setTicket] = useState(null)
-  const [status, setStatus] = useState('Open')
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [loadError, setLoadError] = useState('')
   const [analyzing, setAnalyzing] = useState(false)
-  const [category, setCategory] = useState(null)
-  const [priority, setPriority] = useState(null)
-  const [approved, setApproved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [aiError, setAiError] = useState('')
 
   useEffect(() => {
-    if (invalidId) return
-
-    api.get(`/api/tickets/${id}`)
-      .then(({ data }) => {
-        if (!data || !data.id) throw new Error('Empty ticket response')
-        setTicket(data)
-        setStatus(data.status)
-        setCategory(data.category)
-        setPriority(data.priority)
-        setApproved(data.human_approved)
-      })
-      .catch((requestError) => setError(requestError.response?.status === 404
-        ? 'Ticket not found.'
-        : 'Unable to load this ticket. Please try again.'))
+    api
+      .get(`/api/tickets/${id}`)
+      .then((res) => setTicket(res.data))
+      .catch(() => setLoadError('Could not load ticket.'))
       .finally(() => setLoading(false))
-  }, [id, invalidId])
+  }, [id])
 
-  async function saveStatus() {
-    setSaving(true)
-    setError('')
-    try {
-      const { data } = await api.put(`/api/tickets/${id}`, { status, category, priority, human_approved: approved })
-      if (!data || !data.id) throw new Error('Empty update response')
-      setTicket(data)
-      setCategory(data.category)
-      setPriority(data.priority)
-      setApproved(data.human_approved)
-    } catch (requestError) {
-      setError(requestError.response?.status === 404
-        ? 'Ticket not found.'
-        : 'Unable to update this ticket. Please try again.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function analyzeTicket() {
+  const handleAnalyze = async () => {
     setAnalyzing(true)
-    setError('')
+    setAiError('')
     try {
-      const { data } = await api.post(`/api/tickets/${id}/analyze`)
-      if (!data?.id) throw new Error('Empty analysis response')
-      setTicket(data)
-      setCategory(data.category)
-      setPriority(data.priority)
+      const updated = await analyzeTicket(id)
+      setTicket(updated)
     } catch {
-      setError('Unable to analyze this ticket right now. Please try again.')
+      // AI analysis unavailable: the ticket is untouched and can still be
+      // classified manually below, so this never blocks the workflow.
+      setAiError('AI analysis unavailable. Manual classification required.')
     } finally {
       setAnalyzing(false)
     }
   }
 
+  const handleApprove = async () => {
+    setSaving(true)
+    setAiError('')
+    try {
+      const updated = await saveDecision(id, {
+        category: ticket.ai_category,
+        priority: ticket.ai_priority,
+      })
+      setTicket(updated)
+    } catch {
+      setAiError('Could not save the decision. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleModify = async (category, priority) => {
+    setSaving(true)
+    setAiError('')
+    try {
+      const updated = await saveDecision(id, { category, priority })
+      setTicket(updated)
+    } catch {
+      setAiError('Could not save the decision. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) return <Loading label="Loading ticket..." />
+  if (loadError) return <ErrorMessage message={loadError} />
+
+  const hasAiRecommendation = Boolean(ticket.ai_summary)
+
   return (
-    <div className="mx-auto max-w-5xl p-6">
-      {invalidId && <ErrorMessage message="That ticket ID is not valid." />}
-      {!invalidId && loading && <Loading label="Loading ticket..." />}
-      {!invalidId && !loading && error && <ErrorMessage message={error} />}
-      {!loading && !error && ticket && (
-        <TicketDetails ticket={ticket} status={status} onStatusChange={setStatus} category={category} onCategoryChange={setCategory} priority={priority} onPriorityChange={setPriority} approved={approved} onApprovedChange={setApproved} onAnalyze={analyzeTicket} onSave={saveStatus} saving={saving} analyzing={analyzing} />
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-2xl font-bold text-navy mb-1">{ticket.title}</h1>
+      <p className="text-sm text-text-secondary mb-6">
+        Ticket #{ticket.id} &middot; Submitted by {ticket.name}
+      </p>
+
+      <Card className="mb-6">
+        <p className="text-sm text-text-secondary whitespace-pre-wrap">{ticket.description}</p>
+      </Card>
+
+      {aiError && (
+        <div className="mb-4">
+          <ErrorMessage message={aiError} />
+        </div>
       )}
+
+      {hasAiRecommendation ? (
+        <AIRecommendation category={ticket.ai_category} priority={ticket.ai_priority} summary={ticket.ai_summary}>
+          <ApprovalPanel ticket={ticket} onApprove={handleApprove} onModify={handleModify} saving={saving} />
+        </AIRecommendation>
+      ) : (
+        <Card className="mb-6">
+          <p className="text-sm text-text-secondary mb-3">No AI recommendation yet for this ticket.</p>
+          <Button variant="ai" onClick={handleAnalyze} disabled={analyzing}>
+            {analyzing ? 'Analyzing...' : 'Run AI Analysis'}
+          </Button>
+        </Card>
+      )}
+
+      <p className="text-sm text-text-secondary">
+        Status updates and resolution actions go here (features/management).
+      </p>
     </div>
   )
 }
