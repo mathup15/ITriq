@@ -36,6 +36,16 @@ app.include_router(ticket_management.router)
 app.include_router(dashboard.router)
 
 
+@app.get("/")
+def root():
+    return {
+        "name": "SupportAI API",
+        "status": "ok",
+        "docs": "/docs",
+        "frontend": "http://127.0.0.1:5173/",
+    }
+
+
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
