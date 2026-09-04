@@ -29,6 +29,9 @@ def create_ticket(payload: TicketCreate, db: Session = Depends(get_db)):
         email=payload.email,
         title=payload.title,
         description=payload.description,
+        device=payload.device,
+        location=payload.location,
+        category=payload.category.value,
         status="Open",
         human_approved=False,
     )

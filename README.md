@@ -61,6 +61,29 @@ cd backend; python -m pytest
 cd frontend; npm run test
 ```
 
+## Ticket submission (`features/tickets`)
+
+Employees submit issues from `/submit` (`SubmitTicket.jsx` + `TicketForm.jsx`,
+posting via `ticketApi.js`). Fields:
+
+| Field       | Required | Rules                                  |
+|-------------|----------|------------------------------------------|
+| Name        | Yes      | 2–100 characters                         |
+| Email       | Yes      | Valid email address                      |
+| Issue Title | Yes      | 5–150 characters                         |
+| Description | Yes      | 10–1000 characters                       |
+| Category    | Yes      | One of: Hardware, Software, Network, Account Access, Security, Other |
+| Device      | No       | Free text                                |
+| Location    | No       | Free text                                |
+
+Validation runs on the frontend (inline messages under each field) and is
+re-checked by the backend (`TicketCreate` in `schemas.py`, returns `422` with
+details on failure). On success, the ticket is created with `status="Open"`,
+`human_approved=false`, and `ai_category`/`ai_priority`/`ai_summary` left
+`null` until AI analysis runs (`features/ai`). The submitter's chosen
+category is stored as the ticket's `category` right away; `ai_category` is
+a separate, independent AI suggestion filled in later.
+
 ## API
 
 | Method | Endpoint                     | Description                     |
