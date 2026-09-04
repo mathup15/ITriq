@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
-from app.routes import dashboard, tickets
+from app.routes import dashboard, ticket_management, tickets
 
 # Creates supportai.db and the tickets table on first run if they don't exist.
 Base.metadata.create_all(bind=engine)
@@ -27,6 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(tickets.router)
+app.include_router(ticket_management.router)
 app.include_router(dashboard.router)
 
 

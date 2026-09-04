@@ -2,16 +2,14 @@
 
 POST   /api/tickets            create a ticket
 GET    /api/tickets            list all tickets
-GET    /api/tickets/{id}       get one ticket
 POST   /api/tickets/{id}/analyze   run AI analysis on a ticket
-PUT    /api/tickets/{id}       update category/priority/status/approval
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Ticket
-from app.schemas import TicketCreate, TicketResponse, TicketUpdate
+from app.schemas import TicketCreate, TicketResponse
 from app.services.ai_service import analyze_ticket
 
 router = APIRouter(prefix="/api/tickets", tags=["tickets"])
@@ -45,11 +43,6 @@ def list_tickets(db: Session = Depends(get_db)):
     return db.query(Ticket).order_by(Ticket.created_at.desc()).all()
 
 
-@router.get("/{ticket_id}", response_model=TicketResponse)
-def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
-    return _get_ticket_or_404(ticket_id, db)
-
-
 @router.post("/{ticket_id}/analyze", response_model=TicketResponse)
 def analyze(ticket_id: int, db: Session = Depends(get_db)):
     ticket = _get_ticket_or_404(ticket_id, db)
@@ -66,19 +59,6 @@ def analyze(ticket_id: int, db: Session = Depends(get_db)):
         ticket.category = result["category"]
     if not ticket.priority:
         ticket.priority = result["priority"]
-
-    db.commit()
-    db.refresh(ticket)
-    return ticket
-
-
-@router.put("/{ticket_id}", response_model=TicketResponse)
-def update_ticket(ticket_id: int, payload: TicketUpdate, db: Session = Depends(get_db)):
-    ticket = _get_ticket_or_404(ticket_id, db)
-
-    update_data = payload.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(ticket, field, value.value if hasattr(value, "value") else value)
 
     db.commit()
     db.refresh(ticket)
