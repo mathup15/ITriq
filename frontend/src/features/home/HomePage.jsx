@@ -73,7 +73,7 @@ export default function HomePage() {
 
       {/* Feature Cards */}
       <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="text-center text-2xl font-bold text-navy mb-10">How SupportAI Works</h2>
+        <h2 className="text-center text-2xl font-bold text-navy mb-10">How ITriq Works</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
             { icon: '🤖', title: 'AI Triage', desc: 'Automatically classify IT issues by category and priority using AI.' },
@@ -102,7 +102,7 @@ export default function HomePage() {
           <p className="text-text-secondary text-sm leading-relaxed mb-6 max-w-3xl">
             Across Sri Lanka, IT support in schools, government offices, hospitals, and businesses still relies on
             phone calls, WhatsApp messages, and walk-ins. Issues get lost, priorities are guessed, and resolution
-            times are long. <strong className="text-navy">SupportAI</strong> replaces that chaos with a structured,
+            times are long. <strong className="text-navy">ITriq</strong> replaces that chaos with a structured,
             AI-assisted ticketing system — so every IT problem is logged, categorised, and resolved faster.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

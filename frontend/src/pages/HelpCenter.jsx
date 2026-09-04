@@ -239,7 +239,7 @@ export default function HelpCenter() {
           <div>
             <p className="font-semibold text-navy text-sm">Built for Sri Lankan organisations</p>
             <p className="text-slate-500 text-xs mt-1">
-              SupportAI helps schools, hospitals, government offices, and businesses across Sri Lanka replace informal WhatsApp IT requests with a structured, AI-assisted support system.
+              ITriq helps schools, hospitals, government offices, and businesses across Sri Lanka replace informal WhatsApp IT requests with a structured, AI-assisted support system.
             </p>
           </div>
         </div>

@@ -25,7 +25,7 @@ function AppShell() {
   return (
     <div className="min-h-screen bg-bg flex">
       <Sidebar />
-      <div className="flex-1 md:ml-56 pt-14 md:pt-0">
+      <div className="flex-1 md:ml-64 pt-14 md:pt-0">
         <Routes>
           <Route path="/" element={<EmployeeHome />} />
           <Route path="/submit" element={<SubmitTicket />} />
