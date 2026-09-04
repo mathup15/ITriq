@@ -28,7 +28,7 @@ export default function Navbar() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <NavLink to="/" className="text-white font-bold text-lg hover:text-cyan-ai transition-colors">
-            SupportAI
+            ITriq
           </NavLink>
           <span className="text-cyan-ai text-xs font-medium hidden sm:inline">
             Smarter IT Support. Faster Resolution.

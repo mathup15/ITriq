@@ -52,9 +52,20 @@ export default function MyTickets() {
   return (
     <div className="min-h-screen bg-bg">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-extrabold text-navy">My Support Tickets</h1>
-          <p className="text-text-secondary text-sm mt-1">Track the status of your IT requests.</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-extrabold text-navy">My Support Tickets</h1>
+            <p className="text-text-secondary text-sm mt-1">Track the status of your IT requests.</p>
+          </div>
+          <button
+            onClick={() => navigate('/submit')}
+            className="flex items-center gap-1.5 bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Ticket
+          </button>
         </div>
 
         {/* Search */}
