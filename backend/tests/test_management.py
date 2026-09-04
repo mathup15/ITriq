@@ -26,7 +26,7 @@ def override_get_db():
 
 
 client = TestClient(app)
-TICKET = {"name": "Management Tester", "email": "manager@example.com", "title": "Cannot access printer", "description": "The office printer is unavailable from my workstation."}
+TICKET = {"name": "Management Tester", "email": "manager@example.com", "title": "Cannot access printer", "description": "The office printer is unavailable from my workstation.", "category": "Hardware"}
 
 
 @pytest.fixture(autouse=True)
