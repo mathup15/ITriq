@@ -16,6 +16,10 @@ class Ticket(Base):
     title = Column(String(150), nullable=False)
     description = Column(Text, nullable=False)
 
+    # Optional context supplied by the submitter at creation time.
+    device = Column(String(100), nullable=True)
+    location = Column(String(100), nullable=True)
+
     # Human-set (or human-approved) values.
     category = Column(String(50), nullable=True)
     priority = Column(String(20), nullable=True)
