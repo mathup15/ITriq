@@ -100,11 +100,14 @@ def analyze_ticket(title: str, description: str) -> dict:
     except Exception:
         result = None
 
-    if not result:
+    if not result or not isinstance(result, dict):
         result = _mock_analyze(title, description)
 
     category = result.get("category") if result.get("category") in VALID_CATEGORIES else "Other"
     priority = result.get("priority") if result.get("priority") in VALID_PRIORITIES else "Medium"
-    summary = result.get("summary") or title
+
+    summary = str(result.get("summary") or title).strip()
+    if len(summary) > 100:
+        summary = summary[:97] + "..."
 
     return {"category": category, "priority": priority, "summary": summary}
