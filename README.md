@@ -81,6 +81,29 @@ cd backend && source venv/Scripts/activate && pytest
 cd frontend && npm run test
 ```
 
+## Ticket submission (`features/tickets`)
+
+Employees submit issues from `/submit` (`SubmitTicket.jsx` + `TicketForm.jsx`,
+posting via `ticketApi.js`). Fields:
+
+| Field       | Required | Rules                                  |
+|-------------|----------|------------------------------------------|
+| Name        | Yes      | 2–100 characters                         |
+| Email       | Yes      | Valid email address                      |
+| Issue Title | Yes      | 5–150 characters                         |
+| Description | Yes      | 10–1000 characters                       |
+| Category    | Yes      | One of: Hardware, Software, Network, Account Access, Security, Other |
+| Device      | No       | Free text                                |
+| Location    | No       | Free text                                |
+
+Validation runs on the frontend (inline messages under each field) and is
+re-checked by the backend (`TicketCreate` in `schemas.py`, returns `422` with
+details on failure). On success, the ticket is created with `status="Open"`,
+`human_approved=false`, and `ai_category`/`ai_priority`/`ai_summary` left
+`null` until AI analysis runs (`features/ai`). The submitter's chosen
+category is stored as the ticket's `category` right away; `ai_category` is
+a separate, independent AI suggestion filled in later.
+
 ## API
 
 | Method | Endpoint                     | Description                     |
@@ -130,6 +153,34 @@ python seed.py
 - `TicketFilters.jsx`: Real-time search bar and dropdown filter controls.
 - `TicketList.jsx`: Responsive support ticket listing with status/priority badges and navigation to `/tickets/:id`.
 - `dashboardApi.js`: API client functions for dashboard stats and filtered ticket querying.
+
+## AI triage feature
+
+When a ticket is submitted, `POST /api/tickets/{id}/analyze` sends its title
+and description to `ai_service.analyze_ticket` (OpenAI/Gemini, or a
+keyword-based mock if no key is set). The response is validated against the
+allowed categories/priorities before being saved as `ai_category`,
+`ai_priority`, and `ai_summary` on the ticket.
+
+The AI's suggestion is never the final word — it only pre-fills `category`
+and `priority` if they're still empty. A human reviewer must:
+
+- **Approve** — saves the AI's category/priority as the final decision and
+  sets `human_approved = true`.
+- **Modify** — lets the reviewer pick a different category/priority before
+  saving, still setting `human_approved = true`.
+
+Either way, `ai_category`/`ai_priority`/`ai_summary` are never overwritten,
+so the ticket always shows both the original AI recommendation and the
+final human decision. This UI lives in `frontend/src/features/ai/`
+(`AIRecommendation.jsx`, `ApprovalPanel.jsx`, `aiApi.js`), wired into
+`features/tickets/TicketDetailPage.jsx`.
+
+**Failure handling:** if the AI call throws (bad key, network error, rate
+limit, malformed response), `analyze_ticket` catches it and falls back to
+the keyword-based mock rather than failing the request — a ticket can
+always be triaged, by AI or manually, and the backend never crashes because
+an AI provider is unavailable.
 
 ## Team ownership
 

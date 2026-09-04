@@ -33,6 +33,9 @@ class TicketCreate(BaseModel):
     email: EmailStr
     title: str = Field(..., min_length=5, max_length=150)
     description: str = Field(..., min_length=10, max_length=1000)
+    category: Category
+    device: Optional[str] = Field(None, max_length=100)
+    location: Optional[str] = Field(None, max_length=100)
 
 
 class TicketUpdate(BaseModel):
@@ -51,6 +54,8 @@ class TicketResponse(BaseModel):
     email: str
     title: str
     description: str
+    device: Optional[str] = None
+    location: Optional[str] = None
     category: Optional[Category] = None
     priority: Optional[Priority] = None
     ai_category: Optional[Category] = None
