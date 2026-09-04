@@ -5,7 +5,7 @@ function Detail({ label, children }) {
   return <div><dt className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{label}</dt><dd className="mt-1 text-sm text-navy">{children || 'Not provided'}</dd></div>
 }
 
-export default function TicketDetails({ ticket, status, onStatusChange, onSave, saving }) {
+export default function TicketDetails({ ticket, status, onStatusChange, category, onCategoryChange, priority, onPriorityChange, approved, onApprovedChange, onAnalyze, onSave, saving, analyzing }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
       <Card>
@@ -34,7 +34,7 @@ export default function TicketDetails({ ticket, status, onStatusChange, onSave, 
         <Card>
           <h2 className="text-lg font-semibold text-navy">Ticket actions</h2>
           <div className="mt-4">
-            <TicketActions status={status} onStatusChange={onStatusChange} onSave={onSave} saving={saving} />
+            <TicketActions status={status} onStatusChange={onStatusChange} category={category} onCategoryChange={onCategoryChange} priority={priority} onPriorityChange={onPriorityChange} approved={approved} onApprovedChange={onApprovedChange} onAnalyze={onAnalyze} onSave={onSave} saving={saving} analyzing={analyzing} />
           </div>
         </Card>
       </div>
